@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Instify',
-        short_name: 'Instify',
+        name: 'Framee',
+        short_name: 'Framee',
         description: 'Addmission 2 Celebration',
         theme_color: '6fa8dc',
         background_color: '6fa8dc',
