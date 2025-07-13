@@ -26,3 +26,9 @@ These endpoints return objects of the form:
 ```
 
 Other record actions like `POST /api/record` and `PUT /api/record/:id` remain unchanged.
+
+## Instify Image Generator
+
+The `/instify` page demonstrates generating certificates and invites from JSON templates.
+It uses Fabric.js and PapaParse (both installed via NPM) to merge CSV data into a canvas
+and export the result as a PNG.

@@ -31,10 +31,11 @@ import AllLeadByAdmission from './Reports/allLeadByAdmission';
 import AddAttendance from './pages/AddAttendance';
 import AllAttendance from './Reports/allAttendance';
 import AllBatches from './Reports/allBatches';
-import AllBalance from './Reports/allBalance'; // <-- ✅ NEW PAGE
+import AllBalance from './Reports/allBalance';
 import AddAccount from './pages/AddAccount';
 import AllExams from './Reports/allExams';
 import Institutes from './pages/Institutes';
+import Instify from './pages/Instify';
 
 export default function App() {
   return (
@@ -73,9 +74,10 @@ export default function App() {
         <Route path="followup" element={<Followup />} />
         <Route path="addAttendance" element={<AddAttendance />} />
         <Route path="allAttendance" element={<AllAttendance />} />
-        <Route path="allBalance" element={<AllBalance />} /> {/* ✅ Added Route */}
-        <Route path="allBatches" element={<AllBatches />} /> {/* ✅ Added Route */}
+        <Route path="allBalance" element={<AllBalance />} />
+        <Route path="allBatches" element={<AllBatches />} />
         <Route path="whatsapp" element={<WhatsAppAdminPage />} />
+        <Route path="instify" element={<Instify />} />
          <Route path="allExams" element={<AllExams />} />
       </Route>
 

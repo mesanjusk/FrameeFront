@@ -1,0 +1,47 @@
+{
+  "version": "5.2.4",
+  "objects": [
+    {
+      "type": "rect",
+      "left": 0,
+      "top": 0,
+      "width": 800,
+      "height": 600,
+      "fill": "#ffffff",
+      "stroke": "#aaaaaa",
+      "strokeWidth": 2
+    },
+    {
+      "type": "textbox",
+      "name": "title",
+      "text": "Certificate of Completion",
+      "left": 400,
+      "top": 100,
+      "fontSize": 32,
+      "fontWeight": "bold",
+      "textAlign": "center",
+      "originX": "center"
+    },
+    {
+      "type": "textbox",
+      "name": "name",
+      "text": "{name}",
+      "left": 400,
+      "top": 250,
+      "fontSize": 28,
+      "textAlign": "center",
+      "originX": "center"
+    },
+    {
+      "type": "textbox",
+      "name": "course",
+      "text": "{course}",
+      "left": 400,
+      "top": 320,
+      "fontSize": 24,
+      "fill": "#555555",
+      "textAlign": "center",
+      "originX": "center"
+    }
+  ]
+}
