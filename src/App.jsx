@@ -1,23 +1,34 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 
+// Layouts and wrappers
 import DashboardLayout from './layouts/DashboardLayout';
+import PrivateRoute from './components/PrivateRoute';
+
+// Pages/components
+import Login from './components/Login';          // Single Login import
+import Register from './pages/Register';         // Or './components/Register' if you have both, adjust accordingly
+import Signup from './components/Signup';
+import ImageUploader from './components/ImageUploader';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
+
+// Planner App pages
+import Planner from './pages/Planner';
+import Review from './pages/Review';
+import Team from './pages/Team';
+
+// Core dashboard pages
 import Dashboard from './pages/Dashboard';
 import User from './pages/User';
-import Login from './components/Login';
-import ImageUploader from './components/ImageUploader';
 import Enquiry from './pages/Enquiry';
 import Courses from './pages/Courses';
 import Batches from './pages/Batches';
-import Signup from './components/Signup';
 import OrgCategories from './pages/OrgCategories';
 import Education from './pages/Education';
 import Exam from './pages/Exam';
 import PaymentMode from './pages/remove1';
-import ForgotPassword from './components/ForgotPassword';
-import ResetPassword from './components/ResetPassword';
 import InstituteProfile from './pages/instituteProfile';
 import Owner from './pages/Owner';
-import PrivateRoute from './components/PrivateRoute';
 import CoursesCategory from './pages/CoursesCategory';
 import Leads from './Reports/Leads';
 import AllAdmission from './Reports/allAdmission';
@@ -42,14 +53,26 @@ export default function App() {
     <Routes>
       {/* 🌐 Public Routes */}
       <Route path="/" element={<Login />} />
-      <Route path="/register" element={<Signup />} />
+      <Route path="/register" element={<Register />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/upload" element={<ImageUploader />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password/:id" element={<ResetPassword />} />
 
-      {/* 🔐 Protected Routes under :username */}
-      <Route path="/:username" element={<PrivateRoute><DashboardLayout /></PrivateRoute>} >
+      {/* ➕ Standalone Extra Public Pages (from old app) */}
+      <Route path="/planner" element={<Planner />} />
+      <Route path="/review" element={<Review />} />
+      <Route path="/team" element={<Team />} />
+
+      {/* 🔐 Protected Routes */}
+      <Route
+        path="/:username"
+        element={
+          <PrivateRoute>
+            <DashboardLayout />
+          </PrivateRoute>
+        }
+      >
         <Route index element={<Dashboard />} />
         <Route path="user" element={<User />} />
         <Route path="batches" element={<Batches />} />
@@ -78,7 +101,7 @@ export default function App() {
         <Route path="allBatches" element={<AllBatches />} />
         <Route path="whatsapp" element={<WhatsAppAdminPage />} />
         <Route path="instify" element={<Instify />} />
-         <Route path="allExams" element={<AllExams />} />
+        <Route path="allExams" element={<AllExams />} />
       </Route>
 
       {/* 🧭 Fallback */}
