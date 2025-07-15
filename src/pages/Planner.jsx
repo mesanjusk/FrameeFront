@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import BASE_URL from '../config';
-
+import BASE_URL from "../config"; // Adjust path as needed
 
 const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const users = ['Any user', 'Deepak', 'Priya', 'Amit']; // Replace with backend user list in production
 
 function isBlockForDay(block, date) {
   const d = new Date(date);
@@ -24,7 +24,14 @@ export default function Planner() {
   const [form, setForm] = useState({
     time: "",
     activity: "",
-    recurrence: { type: "once", days: [] },
+    assignee: "Any user",
+    recurrence: { type: "once", days: [] }
+  });
+
+  // For completion modal
+  const [completionModal, setCompletionModal] = useState({
+    open: false,
+    block: null,
     completed: false,
     reason: ""
   });
@@ -36,23 +43,20 @@ export default function Planner() {
     setBlocks(res.data.blocks);
   };
 
-  // Open modal for Add/Edit (edit supports today's completion too)
+  // Open modal for Add/Edit
   const openModal = (block) => {
     if (block) {
-      const todayCompletion = block.completions?.[date] || { completed: false, reason: "" };
       setForm({
         time: block.time,
         activity: block.activity,
-        recurrence: block.recurrence || { type: "once", days: [] },
-        completed: todayCompletion.completed,
-        reason: todayCompletion.reason || ""
+        assignee: block.assignee || "Any user",
+        recurrence: block.recurrence || { type: "once", days: [] }
       });
     } else setForm({
       time: "",
       activity: "",
-      recurrence: { type: "once", days: [] },
-      completed: false,
-      reason: ""
+      assignee: "Any user",
+      recurrence: { type: "once", days: [] }
     });
     setModal({ open: true, edit: block });
   };
@@ -62,26 +66,20 @@ export default function Planner() {
     setForm({
       time: "",
       activity: "",
-      recurrence: { type: "once", days: [] },
-      completed: false,
-      reason: ""
+      assignee: "Any user",
+      recurrence: { type: "once", days: [] }
     });
   };
 
-  // Save new block or edit meta (not completion!)
+  // Save new block or edit meta
   const saveBlock = async (e) => {
     e.preventDefault();
     if (modal.edit) {
       await axios.put(`${BASE_URL}/api/timeblocks/${modal.edit._id}`, {
         time: form.time,
         activity: form.activity,
+        assignee: form.assignee,
         recurrence: form.recurrence
-      });
-      // update today's completion too
-      await axios.put(`${BASE_URL}/api/timeblocks/${modal.edit._id}/completion`, {
-        date,
-        completed: form.completed,
-        reason: form.completed ? "" : form.reason
       });
     } else {
       await axios.post(`${BASE_URL}/api/timeblocks`, { ...form, date });
@@ -97,15 +95,29 @@ export default function Planner() {
     }
   };
 
-  // Toggle completed for this date
-  const toggleCompleted = async (block) => {
+  // --- Completion Modal Logic ---
+  const openCompletionModal = (block) => {
     const todayCompletion = block.completions?.[date] || { completed: false, reason: "" };
-    const newCompleted = !todayCompletion.completed;
-    await axios.put(`${BASE_URL}/api/timeblocks/${block._id}/completion`, {
-      date,
-      completed: newCompleted,
-      reason: newCompleted ? "" : todayCompletion.reason
+    setCompletionModal({
+      open: true,
+      block,
+      completed: todayCompletion.completed,
+      reason: todayCompletion.reason || ""
     });
+  };
+
+  const closeCompletionModal = () => {
+    setCompletionModal({ open: false, block: null, completed: false, reason: "" });
+  };
+
+  const saveCompletion = async (e) => {
+    e.preventDefault();
+    await axios.put(`${BASE_URL}/api/timeblocks/${completionModal.block._id}/completion`, {
+      date,
+      completed: completionModal.completed,
+      reason: completionModal.completed ? "" : completionModal.reason
+    });
+    closeCompletionModal();
     fetchBlocks();
   };
 
@@ -148,9 +160,12 @@ export default function Planner() {
                       {b.recurrence?.type === "custom" && "Custom: " + (b.recurrence.days || []).join(", ")}
                       {(!b.recurrence || b.recurrence?.type === "once") && "One Time"}
                     </div>
+                    <div className="text-xs text-blue-700 font-semibold">
+                      Assigned to: {b.assignee || "Any user"}
+                    </div>
                   </div>
                   <button
-                    onClick={() => toggleCompleted(b)}
+                    onClick={() => openCompletionModal(b)}
                     className={`rounded-full px-2 py-1 text-xs font-semibold ${todayCompletion.completed ? "bg-green-100 text-green-700 border-green-500 border" : "bg-red-100 text-red-700 border-red-500 border"}`}>
                     {todayCompletion.completed ? "Completed" : "Not Done"}
                   </button>
@@ -170,16 +185,17 @@ export default function Planner() {
           })}
         </div>
       </div>
-      {/* Modal */}
+      {/* Add/Edit Modal */}
       {modal.open && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white p-5 rounded-lg shadow w-11/12 max-w-xs">
             <h3 className="font-bold mb-3 text-center">{modal.edit ? "Edit Schedule" : "Add Schedule"}</h3>
             <form onSubmit={saveBlock} className="flex flex-col gap-2">
+              {/* Time Picker */}
+              <label className="font-medium">Time</label>
               <input
-                type="text"
+                type="time"
                 required
-                placeholder="Time (e.g. 7:00–9:00 AM)"
                 value={form.time}
                 onChange={e => setForm({ ...form, time: e.target.value })}
                 className="p-2 border rounded"
@@ -192,7 +208,17 @@ export default function Planner() {
                 onChange={e => setForm({ ...form, activity: e.target.value })}
                 className="p-2 border rounded"
               />
-
+              {/* Assignee Dropdown */}
+              <label className="font-medium">Who will do it?</label>
+              <select
+                value={form.assignee}
+                onChange={e => setForm({ ...form, assignee: e.target.value })}
+                className="p-2 border rounded"
+              >
+                {users.map(user => (
+                  <option value={user} key={user}>{user}</option>
+                ))}
+              </select>
               {/* Recurrence UI */}
               <label className="font-medium mt-2">Repeat</label>
               <div className="flex gap-2 items-center mb-2">
@@ -224,7 +250,6 @@ export default function Planner() {
                   Custom
                 </label>
               </div>
-
               {form.recurrence.type === "custom" && (
                 <div className="flex gap-1 mb-2">
                   {weekDays.map(day => (
@@ -247,28 +272,41 @@ export default function Planner() {
                   ))}
                 </div>
               )}
-
+              <div className="flex gap-2 mt-2">
+                <button type="submit" className="bg-green-600 text-white px-4 py-1 rounded flex-1">Save</button>
+                <button type="button" className="bg-gray-300 px-4 py-1 rounded flex-1" onClick={closeModal}>Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Completion Modal */}
+      {completionModal.open && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white p-5 rounded-lg shadow w-11/12 max-w-xs">
+            <h3 className="font-bold mb-3 text-center">Update Completion</h3>
+            <form onSubmit={saveCompletion} className="flex flex-col gap-2">
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
-                  checked={form.completed}
-                  onChange={e => setForm({ ...form, completed: e.target.checked, reason: e.target.checked ? "" : form.reason })}
+                  checked={completionModal.completed}
+                  onChange={e => setCompletionModal({ ...completionModal, completed: e.target.checked, reason: e.target.checked ? "" : completionModal.reason })}
                 />
-                Mark as Completed (for this day)
+                Mark as Completed
               </label>
-              {!form.completed && (
+              {!completionModal.completed && (
                 <input
                   type="text"
                   required
                   placeholder="Reason if not completed"
-                  value={form.reason}
-                  onChange={e => setForm({ ...form, reason: e.target.value })}
+                  value={completionModal.reason}
+                  onChange={e => setCompletionModal({ ...completionModal, reason: e.target.value })}
                   className="p-2 border rounded"
                 />
               )}
               <div className="flex gap-2 mt-2">
                 <button type="submit" className="bg-green-600 text-white px-4 py-1 rounded flex-1">Save</button>
-                <button type="button" className="bg-gray-300 px-4 py-1 rounded flex-1" onClick={closeModal}>Cancel</button>
+                <button type="button" className="bg-gray-300 px-4 py-1 rounded flex-1" onClick={closeCompletionModal}>Cancel</button>
               </div>
             </form>
           </div>
