@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import BASE_URL from "./config"; // <- Make sure the path is correct
 
 const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -23,7 +24,6 @@ export default function Planner() {
     time: "",
     activity: "",
     recurrence: { type: "once", days: [] },
-    // for edit modal
     completed: false,
     reason: ""
   });
@@ -31,7 +31,7 @@ export default function Planner() {
   useEffect(() => { fetchBlocks(); }, [date]);
 
   const fetchBlocks = async () => {
-    const res = await axios.get("http://localhost:5000/api/timeblocks");
+    const res = await axios.get(`${BASE_URL}/api/timeblocks`);
     setBlocks(res.data.blocks);
   };
 
@@ -71,19 +71,19 @@ export default function Planner() {
   const saveBlock = async (e) => {
     e.preventDefault();
     if (modal.edit) {
-      await axios.put(`http://localhost:5000/api/timeblocks/${modal.edit._id}`, {
+      await axios.put(`${BASE_URL}/api/timeblocks/${modal.edit._id}`, {
         time: form.time,
         activity: form.activity,
         recurrence: form.recurrence
       });
       // update today's completion too
-      await axios.put(`http://localhost:5000/api/timeblocks/${modal.edit._id}/completion`, {
+      await axios.put(`${BASE_URL}/api/timeblocks/${modal.edit._id}/completion`, {
         date,
         completed: form.completed,
         reason: form.completed ? "" : form.reason
       });
     } else {
-      await axios.post("http://localhost:5000/api/timeblocks", { ...form, date });
+      await axios.post(`${BASE_URL}/api/timeblocks`, { ...form, date });
     }
     closeModal();
     fetchBlocks();
@@ -91,7 +91,7 @@ export default function Planner() {
 
   const deleteBlock = async (id) => {
     if (window.confirm("Delete this schedule?")) {
-      await axios.delete(`http://localhost:5000/api/timeblocks/${id}`);
+      await axios.delete(`${BASE_URL}/api/timeblocks/${id}`);
       fetchBlocks();
     }
   };
@@ -100,7 +100,7 @@ export default function Planner() {
   const toggleCompleted = async (block) => {
     const todayCompletion = block.completions?.[date] || { completed: false, reason: "" };
     const newCompleted = !todayCompletion.completed;
-    await axios.put(`http://localhost:5000/api/timeblocks/${block._id}/completion`, {
+    await axios.put(`${BASE_URL}/api/timeblocks/${block._id}/completion`, {
       date,
       completed: newCompleted,
       reason: newCompleted ? "" : todayCompletion.reason
