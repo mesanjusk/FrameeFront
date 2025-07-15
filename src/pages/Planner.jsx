@@ -145,7 +145,7 @@ export default function Planner() {
           <button className="ml-auto px-3 py-1 bg-green-700 text-white rounded text-sm" onClick={() => openModal(null)}>+ Add</button>
         </div>
         {/* Activity Cards */}
-        <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2">
   {todayBlocks.length === 0 && (
     <div className="text-center text-gray-500 mt-8">
       No schedule found for this day.
@@ -153,47 +153,69 @@ export default function Planner() {
   )}
   {todayBlocks.map((b) => {
     const todayCompletion = b.completions?.[date] || { completed: false, reason: "" };
+    const isCompleted = !!todayCompletion.completed;
+    const statusLabel = isCompleted ? "C" : "P";
+    const statusColor = isCompleted ? "bg-green-500 text-white" : "bg-red-500 text-white";
     return (
-      <div key={b._id} className="bg-white p-3 rounded-lg shadow border relative">
-        {/* Row 1: Activity & Time */}
-        <div className="flex items-center justify-between">
-          <div className="font-semibold text-base">{b.activity}</div>
-          <div className="font-semibold text-sm text-gray-700">{b.time}</div>
+      <div
+        key={b._id}
+        className="flex items-start gap-3 px-2 py-2 rounded-xl shadow bg-white border border-gray-200 cursor-pointer hover:bg-green-50 relative"
+        onClick={e => {
+          // Prevent icon clicks from opening completion modal:
+          if (e.target.dataset.icon) return;
+          openCompletionModal(b);
+        }}
+      >
+        {/* Status Letter */}
+        <div className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-lg ${statusColor}`}>
+          {statusLabel}
         </div>
-        {/* Row 2: Days (Repeat) & User */}
-        <div className="flex items-center justify-between mt-1">
-          <div className="text-xs text-gray-500">
-            {b.recurrence?.type === "daily" && "Daily"}
-            {b.recurrence?.type === "custom" && "Custom: " + (b.recurrence.days || []).join(", ")}
-            {(!b.recurrence || b.recurrence?.type === "once") && "One Time"}
+
+        {/* Main Content */}
+        <div className="flex-1">
+          <div className="flex justify-between items-start">
+            {/* Task */}
+            <div>
+              <div className="font-bold text-base">{b.activity}</div>
+              <div className="text-xs text-gray-500 lowercase">{(b.assignee || "any user").toLowerCase()}</div>
+            </div>
+            {/* Time */}
+            <div className="text-xs text-gray-400 mt-0.5">{b.time}</div>
           </div>
-          <div className="text-xs text-blue-700 font-semibold">
-            {b.assignee || "Any user"}
-          </div>
-        </div>
-        {/* Row 3: Status, Reason, Actions */}
-        <div className="flex items-center justify-between mt-2">
-          <div className="flex items-center gap-2">
+          {!isCompleted && todayCompletion.reason && (
+            <div className="text-xs text-red-500 mt-1">Reason: {todayCompletion.reason}</div>
+          )}
+          {/* Bottom right corner: edit/delete */}
+          <div className="absolute right-2 bottom-2 flex gap-3 z-10">
             <button
-              onClick={() => openCompletionModal(b)}
-              className={`rounded-full px-2 py-1 text-xs font-semibold ${todayCompletion.completed ? "bg-green-100 text-green-700 border-green-500 border" : "bg-red-100 text-red-700 border-red-500 border"}`}>
-              {todayCompletion.completed ? "Completed" : "Not Done"}
-            </button>
-            {!todayCompletion.completed && (
-              <span className="text-xs text-red-500 ml-2">
-                Reason: {todayCompletion.reason ? todayCompletion.reason : "Not provided"}
-              </span>
-            )}
-          </div>
-          <div className="flex gap-1">
-            <button className="text-yellow-500 font-bold text-lg" onClick={() => openModal(b)} title="Edit">✏️</button>
-            <button className="text-red-500 font-bold text-lg" onClick={() => deleteBlock(b._id)} title="Delete">🗑️</button>
+              data-icon="edit"
+              className="text-yellow-500 font-bold text-base p-1 rounded-full hover:bg-yellow-100 transition"
+              onClick={e => {
+                e.stopPropagation();
+                openModal(b);
+              }}
+              title="Edit"
+            >✏️</button>
+            <button
+              data-icon="delete"
+              className="text-red-500 font-bold text-base p-1 rounded-full hover:bg-red-100 transition"
+              onClick={e => {
+                e.stopPropagation();
+                // Open your delete modal here, or call deleteBlock(b._id)
+                if (window.confirm("Delete this schedule?")) {
+                  deleteBlock(b._id);
+                }
+              }}
+              title="Delete"
+            >🗑️</button>
           </div>
         </div>
       </div>
     );
   })}
 </div>
+
+
 
       </div>
       {/* Add/Edit Modal */}
